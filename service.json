@@ -1,0 +1,79 @@
+{
+    "id": "freeagent",
+    "name": "FreeAgent",
+    "version": "1.0.0",
+    "description": "Connects the shop to FreeAgent (OAuth2) and adds a 'Push to FreeAgent' button on paid orders that creates a sales invoice. Locked to one named FreeAgent company",
+    "category": "business",
+    "author": {
+        "name": "Gavin Cox"
+    },
+    "license": "proprietary",
+
+    "requires": {
+        "osmium": ">=1.0.0",
+        "php": ">=8.1",
+        "services": []
+    },
+
+    "autoload": [
+        "models"
+    ],
+
+    "migrations": "migrations",
+
+    "hooks": {
+        "order.panels": [
+            "Osmium\\Services\\Freeagent\\Models\\FreeagentOrderSync::orderPanel"
+        ],
+        "order.action": [
+            "Osmium\\Services\\Freeagent\\Models\\FreeagentOrderSync::orderAction"
+        ]
+    },
+
+    "admin": {
+        "menu": {
+            "section": "Content",
+            "items": [
+                {
+                    "id": "freeagent",
+                    "label": "FreeAgent",
+                    "icon": "bx bx-receipt",
+                    "route": "admin/settings/freeagent",
+                    "activePattern": "admin/settings/freeagent",
+                    "role": null
+                }
+            ]
+        },
+        "routes": {
+            "admin/settings/freeagent": {
+                "controller": "controllers/FreeagentController.php",
+                "class": "Osmium\\Services\\Freeagent\\Controllers\\FreeagentController",
+                "method": "index",
+                "title": "FreeAgent"
+            },
+            "admin/settings/freeagent/connect": {
+                "controller": "controllers/FreeagentController.php",
+                "class": "Osmium\\Services\\Freeagent\\Controllers\\FreeagentController",
+                "method": "connect",
+                "title": "FreeAgent"
+            },
+            "admin/settings/freeagent/callback": {
+                "controller": "controllers/FreeagentController.php",
+                "class": "Osmium\\Services\\Freeagent\\Controllers\\FreeagentController",
+                "method": "callback",
+                "title": "FreeAgent"
+            },
+            "admin/settings/freeagent/action": {
+                "controller": "controllers/FreeagentController.php",
+                "class": "Osmium\\Services\\Freeagent\\Controllers\\FreeagentController",
+                "method": "action",
+                "title": "FreeAgent"
+            }
+        }
+    },
+
+    "setup": {
+        "requiresConnection": true,
+        "postInstallNote": "Pushing is locked until configured. Create an app in the FreeAgent developer dashboard, enter its OAuth identifier/secret on the settings page and add the shown redirect URI to the app. Set Allowed company to the exact name of the FreeAgent company, then connect, then pick the sales category and tax rate. Pushing creates real invoices."
+    }
+}

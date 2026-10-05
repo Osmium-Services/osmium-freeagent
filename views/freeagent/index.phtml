@@ -1,0 +1,155 @@
+<?php $freeagent = $admin['freeagent']; ?>
+<div class="d-flex justify-content-between align-items-center py-3 mb-4">
+    <h4 class="mb-0">
+        <span class="text-muted fw-light">Services /</span> FreeAgent
+    </h4>
+    <button type="submit" form="settings-form" class="btn btn-primary">
+        <i class="bx bx-save me-1"></i> Save Settings
+    </button>
+</div>
+
+<?php if ($admin['flash'] ?? null): ?>
+    <div class="alert alert-<?= \htmlspecialchars($admin['flash']['type']) ?> alert-dismissible fade show" role="alert">
+        <?= \htmlspecialchars($admin['flash']['text']) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+<?php endif; ?>
+
+<?php if ($freeagent['error']): ?>
+    <div class="alert alert-danger"><i class="bx bx-error-circle me-1"></i> <?= \htmlspecialchars($freeagent['error']) ?></div>
+<?php endif; ?>
+
+<?php if ($freeagent['justConnected']): ?>
+    <div class="alert alert-success"><i class="bx bx-check-circle me-1"></i> Connected to FreeAgent.</div>
+<?php endif; ?>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="alert alert-warning">
+            <i class="bx bx-error-circle me-1"></i>
+            Pushing an order creates a real <strong>open</strong> invoice in FreeAgent. Pushes are refused until
+            <em>Allowed company</em> below exactly matches the connected company.
+        </div>
+
+        <form method="POST" action="<?= $admin['basePath'] ?>settings/freeagent/" id="settings-form">
+            <input type="hidden" name="token" value="<?= $template['formToken'] ?? '' ?>">
+            <div class="card mb-4">
+                <div class="card-header"><h5 class="mb-0"><i class="bx bx-receipt me-2"></i>FreeAgent app</h5></div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="client_id" class="form-label fw-semibold">OAuth identifier</label>
+                        <input type="text" class="form-control" id="client_id" name="client_id"
+                            value="<?= \htmlspecialchars($freeagent['clientId']) ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label for="client_secret" class="form-label fw-semibold">OAuth secret</label>
+                        <input type="password" class="form-control" id="client_secret" name="client_secret" autocomplete="new-password"
+                            <?= $freeagent['hasSecret'] ? 'placeholder="Leave blank to keep current"' : '' ?>>
+                        <div class="form-text">Stored server-side and never shown again.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="redirect_uri" class="form-label fw-semibold">Redirect URI</label>
+                        <input type="text" class="form-control" id="redirect_uri" name="redirect_uri"
+                            value="<?= \htmlspecialchars($freeagent['redirectUri']) ?>">
+                        <div class="form-text">Must match a redirect URI on the FreeAgent app exactly (protocol, trailing slash, everything).</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="allowed_company_name" class="form-label fw-semibold">Allowed company</label>
+                        <input type="text" class="form-control" id="allowed_company_name" name="allowed_company_name"
+                            value="<?= \htmlspecialchars($freeagent['allowedCompanyName']) ?>">
+                        <div class="form-text">Exact name of the FreeAgent company pushes may go to.</div>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input type="checkbox" class="form-check-input" id="sandbox" name="sandbox" value="1" <?= $freeagent['sandbox'] ? 'checked' : '' ?>>
+                        <label for="sandbox" class="form-check-label">Use the FreeAgent sandbox</label>
+                        <div class="form-text">For testing with a sandbox app and account. Disconnect and reconnect after changing this.</div>
+                    </div>
+                    <?php if ($freeagent['lookupError']) : ?>
+                        <div class="alert alert-danger"><i class="bx bx-error-circle me-1"></i> Could not load from FreeAgent: <?= \htmlspecialchars($freeagent['lookupError']) ?></div>
+                    <?php endif; ?>
+                    <?php if ($freeagent['connected'] && !$freeagent['lookupError']) : ?>
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label for="category_url" class="form-label fw-semibold">Sales category</label>
+                            <select class="form-select" id="category_url" name="category_url">
+                                <option value="">Choose...</option>
+                                <?php foreach ($freeagent['categories'] as $category) : ?>
+                                    <option value="<?= \htmlspecialchars($category['url']) ?>" <?= $freeagent['categoryUrl'] === $category['url'] ? 'selected' : '' ?>><?= \htmlspecialchars($category['name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <div class="form-text">Where order income is booked.</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="tax_rate" class="form-label fw-semibold">Sales tax rate (%)</label>
+                            <input type="number" class="form-control" id="tax_rate" name="tax_rate" min="0" max="100" step="0.01"
+                                value="<?= \htmlspecialchars((string) $freeagent['taxRate']) ?>">
+                            <div class="form-text">Applied to every line, including delivery. Use 0 if not VAT registered.</div>
+                        </div>
+                    </div>
+                    <?php elseif (!$freeagent['connected']) : ?>
+                        <p class="text-muted small mb-0">Connect to FreeAgent below, then come back here to choose the sales category.</p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </form>
+
+        <div class="card mb-4">
+            <div class="card-header"><h5 class="mb-0">Connection</h5></div>
+            <div class="card-body">
+                <?php if (!$freeagent['clientConfigured']): ?>
+                    <div class="alert alert-warning mb-0">Save an OAuth identifier and secret first.</div>
+                <?php elseif ($freeagent['connected']): ?>
+                    <p class="mb-1">
+                        <span class="badge bg-success">Connected</span>
+                        to <strong><?= \htmlspecialchars($freeagent['companyName'] ?? '') ?></strong>
+                    </p>
+                    <p class="text-muted small mb-4">Connected since <?= \htmlspecialchars($freeagent['connectedAt'] ?? '') ?></p>
+                    <button type="button" class="btn btn-outline-primary" onclick="testConnection()">
+                        <i class="bx bx-refresh me-1"></i> Test Connection
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="disconnectFreeagent()">
+                        <i class="bx bx-unlink me-1"></i> Disconnect
+                    </button>
+                    <div id="freeagentActionResult" class="mt-3"></div>
+                <?php else: ?>
+                    <p class="text-muted mb-3">Not connected. Orders can't be pushed to FreeAgent until you connect a company.</p>
+                    <a href="<?= $admin['basePath'] ?>settings/freeagent/connect/" class="btn btn-primary">
+                        <i class="bx bx-link me-1"></i> Connect to FreeAgent
+                    </a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+window.csrfToken = <?= \json_encode($template['formToken'] ?? '') ?>;
+
+async function postFreeagentAction(action) {
+    const response = await fetch('<?= $admin['basePath'] ?>settings/freeagent/action/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, csrf_token: window.csrfToken }),
+    });
+    return response.json();
+}
+
+async function testConnection() {
+    const resultEl = document.getElementById('freeagentActionResult');
+    resultEl.textContent = 'Testing...';
+
+    const result = await postFreeagentAction('test_connection');
+    resultEl.innerHTML = '';
+    const alert = document.createElement('div');
+    alert.className = 'alert mb-0 alert-' + (result.success ? 'success' : 'danger');
+    alert.textContent = result.success ? 'Connected to "' + (result.company || '') + '".' : (result.error || 'Connection test failed');
+    resultEl.appendChild(alert);
+}
+
+async function disconnectFreeagent() {
+    // Not confirm(): native dialogs block browser automation; reconnecting is one click.
+    const result = await postFreeagentAction('disconnect');
+    if (result.success) window.location.reload();
+    else document.getElementById('freeagentActionResult').textContent = result.error || 'Failed to disconnect';
+}
+</script>
