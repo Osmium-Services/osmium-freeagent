@@ -85,7 +85,6 @@ class FreeagentConfig
             'redirectUri' => '',
             'sandbox' => false,
             'categoryUrl' => '',
-            'taxRate' => '20',
             'allowedCompanyName' => '',
         ];
     }

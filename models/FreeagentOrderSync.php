@@ -97,7 +97,7 @@ class FreeagentOrderSync
             contactUrl: $contactUrl,
             lineItems: $lineItems,
             categoryUrl: $categoryUrl,
-            taxRate: (float) $config->taxRate,
+            taxRate: (float) $order['tax_rate_percent'], // The rate this order was charged at, not today's shop rate
             orderRef: $order['order_ref'],
             invoiceDate: $invoiceDate,
         );

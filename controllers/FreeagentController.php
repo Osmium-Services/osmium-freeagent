@@ -41,7 +41,6 @@ class FreeagentController extends AdminController
             'redirectUri' => $config['redirectUri'] ?: $this->suggestedRedirectUri(),
             'sandbox' => (bool) $config['sandbox'],
             'categoryUrl' => $config['categoryUrl'],
-            'taxRate' => $config['taxRate'],
             'categories' => $lookups['categories'],
             'lookupError' => $lookups['error'],
             'allowedCompanyName' => $config['allowedCompanyName'],
@@ -143,7 +142,6 @@ class FreeagentController extends AdminController
             'redirectUri' => \trim($_POST['redirect_uri'] ?? ''),
             'sandbox' => !empty($_POST['sandbox']),
             'categoryUrl' => isset($_POST['category_url']) ? \trim($_POST['category_url']) : (string) $current->categoryUrl, // Not on the form until connected
-            'taxRate' => isset($_POST['tax_rate']) ? $this->cleanTaxRate($_POST['tax_rate']) : (string) $current->taxRate,
             'allowedCompanyName' => \trim($_POST['allowed_company_name'] ?? ''),
         ]);
 
@@ -202,15 +200,6 @@ class FreeagentController extends AdminController
      * A tax rate percentage between 0 and 100, kept as a plain decimal string.
      * Anything else becomes 0 rather than a surprise rate on a real invoice.
      */
-    private function cleanTaxRate(string $posted): string
-    {
-        $posted = \trim($posted);
-
-        $valid = \is_numeric($posted) && (float) $posted >= 0 && (float) $posted <= 100;
-
-        return $valid ? (string) (float) $posted : '0';
-    }
-
     private function freeagent(): FreeagentService
     {
         return FreeagentConfig::buildService($this->osmium->dataSource);
