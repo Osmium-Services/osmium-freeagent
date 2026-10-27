@@ -1,9 +1,10 @@
 {
     "id": "freeagent",
     "name": "FreeAgent",
-    "version": "1.2.1",
+    "version": "1.2.2",
     "description": "Connects the shop to FreeAgent (OAuth2) and adds a 'Push to FreeAgent' button on paid orders that creates a sales invoice. Locked to one named FreeAgent company",
     "category": "business",
+    "website": "https://www.freeagent.com",
     "author": {
         "name": "Gavin Cox"
     },
