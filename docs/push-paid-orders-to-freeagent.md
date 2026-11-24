@@ -1,6 +1,7 @@
 ---
 title: Push paid orders to FreeAgent
 tags: freeagent, accounting, invoice, orders, bookkeeping, oauth, push
+page: admin/settings/freeagent
 ---
 
 **FreeAgent** connects your shop to your FreeAgent account. A **Push to FreeAgent** button on each paid order creates a sales invoice there. It creates an open invoice.
